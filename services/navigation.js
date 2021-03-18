@@ -244,12 +244,12 @@ module.exports = {
               uiRouterKey: item.uiRouterKey,
               slug: !slug && item.uiRouterKey ? slugify(item.uiRouterKey) : slug,
               external: isExternal,
-              related: isExternal || !lastRelated ? undefined : {
+              related: /*isExternal || */!lastRelated ? undefined : {
                 ...lastRelated,
                 __templateName: getTemplateName(lastRelated.__contentType, lastRelated.id),
               },
               audience: !isEmpty(item.audience) ? item.audience.map(aItem => aItem.key) : undefined,
-              items: isExternal ? undefined : service.renderTree(
+              items: /*isExternal ? undefined : */service.renderTree(
                 items,
                 item.id,
                 field,

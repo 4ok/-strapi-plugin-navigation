@@ -59,7 +59,7 @@ const Item = (props) => {
   const isMenuAllowedLevel = isNumber(allowedLevels) ? level < allowedLevels : true;
   const isExternal = item.type === navigationItemType.EXTERNAL;
   const absolutePath = isExternal ? undefined : `${levelPath === '/' ? '' : levelPath}/${path === '/' ? '' : path}`;
-  const hasChildren = !isEmpty(item.items) && !isExternal;
+  const hasChildren = !isEmpty(item.items)/* && !isExternal*/;
 
   const handleReOrder = (e, moveBy = 0) => onItemReOrder(e, {
     ...item,
@@ -104,7 +104,7 @@ const Item = (props) => {
           onChangeOrder={handleReOrder}
         />
       </CardItem>
-      {!(isExternal || removed) && (
+      {!(/*isExternal || */removed) && (
         <CardItemLevelAdd
           color={isNextMenuAllowedLevel ? 'primary' : 'secondary'}
           icon={<FontAwesomeIcon icon={faPlus} size="3x" />}

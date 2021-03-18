@@ -22,8 +22,8 @@ export const form = {
         .when('type', {
           is: val => val === navigationItemType.EXTERNAL,
           then: yup.string()
-            .required(translatedErrors.required)
-            .url(`${pluginId}.popup.item.form.externalPath.validation.type`),
+            .required(translatedErrors.required),
+            // .url(`${pluginId}.popup.item.form.externalPath.validation.type`),
           otherwise: yup.string().notRequired(),
         }),
       menuAttached: yup.boolean(),
