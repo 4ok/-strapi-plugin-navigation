@@ -30,6 +30,7 @@ import {
   SUBMIT_NAVIGATION_ERROR,
 } from './actions';
 import { prepareItemToViewPayload } from '../View/utils/parsers';
+import { getTradId } from "../../translations";
 
 const DataManagerProvider = ({ children }) => {
   const [reducerState, dispatch] = useReducer(reducer, initialState, init);
@@ -160,12 +161,19 @@ const DataManagerProvider = ({ children }) => {
     }
   }, [autoReload, currentEnvironment]);
 
-  const getContentTypeItems = async (type, plugin = "") => {
+  const getContentTypeItems = async ({type, query}, plugin = "") => {
     dispatch({
       type: GET_CONTENT_TYPE_ITEMS,
     });
     const url = plugin ? `/${plugin}/${type}` : `/${type}`;
-    const contentTypeItems = await request(url, {
+
+    const queryParams = new URLSearchParams();
+    queryParams.append('_publicationState', 'preview');
+    if (query) {
+      queryParams.append('_q', query);
+    }
+
+    const contentTypeItems = await request(`${url}?${queryParams.toString()}`, {
       method: "GET",
       signal,
     });
@@ -239,11 +247,14 @@ const DataManagerProvider = ({ children }) => {
 
       dispatch({
         type: SUBMIT_NAVIGATION_SUCCEEDED,
-        navigation,
+        navigation: {
+          ...navigation,
+          items: prepareItemToViewPayload(navigation.items, null, config),
+        },
       });
       emitEvent("didSubmitNavigation");
 
-      strapi.notification.success(`${pluginId}.notification.navigation.submit`);
+      strapi.notification.success(getTradId('notification.navigation.submit'));
     } catch (err) {
       dispatch({
         type: SUBMIT_NAVIGATION_ERROR,
@@ -254,7 +265,7 @@ const DataManagerProvider = ({ children }) => {
       if (err.response.payload.data && err.response.payload.data.errorTitles) {
         return strapi.notification.error(
           formatMessage(
-            { id: `${pluginId}.notification.navigation.error` },
+            getTrad('notification.navigation.error'),
             { ...err.response.payload.data, errorTitles: err.response.payload.data.errorTitles.join(' and ') },
           ),
         );

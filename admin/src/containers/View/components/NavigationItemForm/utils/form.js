@@ -22,8 +22,11 @@ export const form = {
         .when('type', {
           is: val => val === navigationItemType.EXTERNAL,
           then: yup.string()
-            .required(translatedErrors.required),
-            // .url(`${pluginId}.popup.item.form.externalPath.validation.type`),
+            .required(translatedErrors.required)
+            .matches(/(#.*)|(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/, { 
+              excludeEmptyString: true,
+              message: `${pluginId}.popup.item.form.externalPath.validation.type`,
+            }),
           otherwise: yup.string().notRequired(),
         }),
       menuAttached: yup.boolean(),
