@@ -124,14 +124,17 @@ module.exports = {
       .map(({ key, available}) => {
         const item = strapi.contentTypes[key];
         const relatedField = (item.associations || []).find(_ => _.model === 'navigationitem');
-        const { uid, options, info, collectionName, apiName, plugin, kind } = item;
+        const { uid, options, info, collectionName, modelName, apiName, plugin, kind } = item;
         const { name, description } = info;
         const { isManaged, hidden, templateName } = options;
+        const findRouteConfig = find(get(strapi.api, `[${modelName}].config.routes`, []), route => route.handler.includes('.find'));
+        const findRoutePath = findRouteConfig && findRouteConfig.path.split('/')[1];
+        const apiPath = findRoutePath && (findRoutePath !== apiName) ? findRoutePath : apiName || modelName;
         const isSingle = kind === KIND_TYPES.SINGLE;
-        const endpoint = isSingle ? apiName : pluralize(apiName);
-        const relationName = utilsFunctions.singularize(apiName);
+        const endpoint = isSingle ? apiPath : pluralize(apiPath);
+        const relationName = utilsFunctions.singularize(modelName);
         const relationNameParts = last(uid.split('.')).split('-');
-        const contentTypeName = relationNameParts.length > 1 ? relationNameParts.reduce((prev, curr) => `${prev}${upperFirst(curr)}`, '') : upperFirst(apiName);
+        const contentTypeName = relationNameParts.length > 1 ? relationNameParts.reduce((prev, curr) => `${prev}${upperFirst(curr)}`, '') : upperFirst(modelName);
         const labelSingular = name || (upperFirst(relationNameParts.length > 1 ? relationNameParts.join(' ') : relationName));
         return {
           uid,
@@ -248,6 +251,25 @@ module.exports = {
     return service.renderType(type, criteria, itemCriteria);
   },
 
+  renderChildren: async (
+    idOrSlug,
+    childUIKey,
+    type = renderType.FLAT,
+    menuOnly = false
+  ) => {
+    const { service } = utilsFunctions.extractMeta(strapi.plugins);
+    const findById = isNumber(idOrSlug) || isUuid(idOrSlug);
+    const criteria = findById ? { id: idOrSlug } : { slug: idOrSlug };
+    const filter = type === renderType.FLAT ? null : childUIKey;
+
+    const itemCriteria = {
+      ...(menuOnly && { menuAttached: true }),
+      ...(type === renderType.FLAT ? { uiRouterKey: childUIKey } : {}),
+    };
+
+    return service.renderType(type, criteria, itemCriteria, filter);
+  },
+
   renderType: async (type = renderType.FLAT, criteria = {}, itemCriteria = {}) => {
     const { pluginName, service, masterModel, itemModel } = utilsFunctions.extractMeta(
       strapi.plugins,
@@ -273,7 +295,7 @@ module.exports = {
       if (!items) {
         return [];
       }
-      const contentTypes = await service.configContentTypes();
+      const { contentTypes, contentTypesNameFields } = await service.config();
       const getTemplateName = await utilsFunctions.templateNameFactory(items, strapi, contentTypes)
 
       switch (type) {
@@ -285,7 +307,7 @@ module.exports = {
             const slug = isString(parentPath) ? slugify((first(parentPath) === '/' ? parentPath.substring(1) : parentPath).replace(/\//g, '-')) : undefined;
             const lastRelated = item.related ? last(item.related) : undefined;
             return {
-              title: item.title,
+              title: utilsFunctions.composeItemTitle(item, contentTypesNameFields, contentTypes),
               menuAttached: item.menuAttached,
               path: isExternal ? item.externalPath : parentPath,
               type: item.type,
@@ -311,18 +333,26 @@ module.exports = {
             field: 'parent',
             itemParser,
           });
+
+          const filteredStructure = filter
+            ? treeStructure.filter((item) => {
+              return item.uiRouterKey === filter;
+            })
+            : treeStructure; 
+
           if (type === renderType.RFR) {
             return service.renderRFR({
-              items: treeStructure, 
+              items: filteredStructure,
               contentTypes,
             });
           }
-          return treeStructure;
+          return filteredStructure;
         default:
           return items
             .filter(utilsFunctions.filterOutUnpublished)
             .map((item) => ({
               ...sanitizeEntity(item, { model: itemModel }),
+              title: utilsFunctions.composeItemTitle(item, contentTypesNameFields, contentTypes),
               related: item.related,
               items: null,
             }));

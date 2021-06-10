@@ -1,24 +1,21 @@
 {
-  "uid": "application::blog-post.blog-post",
+  "uid": "plugins::another-plugin.pages",
+  "plugin": "another-plugin",
   "kind": "collectionType",
-  "collectionName": "blog_posts",
+  "collectionName": "pages",
   "info": {
-    "name": "Blog post"
+    "name": "Pages"
   },
   "options": {
     "increments": true,
     "timestamps": true,
     "searchable": true,
-    "previewable": true,
-    "draftAndPublish": true
+    "previewable": true
   },
   "attributes": {
     "title": {
       "type": "string",
       "required": true
-    },
-    "altTitle": {
-      "type": "string"
     },
     "navigation": {
       "model": "navigationitem",

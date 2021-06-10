@@ -1,5 +1,6 @@
 {
-  "uid": "application::blog-post.blog-post",
+  "uid": "plugins::another-plugin.blog-post",
+  "plugin": "another-plugin",
   "kind": "collectionType",
   "collectionName": "blog_posts",
   "info": {
@@ -9,8 +10,7 @@
     "increments": true,
     "timestamps": true,
     "searchable": true,
-    "previewable": true,
-    "draftAndPublish": true
+    "previewable": true
   },
   "attributes": {
     "title": {
