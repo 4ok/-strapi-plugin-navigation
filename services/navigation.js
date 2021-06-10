@@ -334,6 +334,8 @@ module.exports = {
             itemParser,
           });
 
+          const filter = false; // todo: bug
+
           const filteredStructure = filter
             ? treeStructure.filter((item) => {
               return item.uiRouterKey === filter;
